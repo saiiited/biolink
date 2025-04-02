@@ -1,6 +1,6 @@
 # Discord Biolink with Lanyard API
 
-A stylish biolink page that displays your Discord presence using the Lanyard API. This page shows your Discord status, current activities, Spotify listening status, and custom links.
+A stylish biolink page that displays your Discord presence using the Lanyard API. This page shows your Discord status, current activities, Spotify listening status, and custom links in a modern, responsive design.
 
 ## Features
 
