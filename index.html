@@ -23,45 +23,6 @@
                 <p id="status-text" class="status-text">Loading status...</p>
             </div>
             
-            <!-- Audio Player Section -->
-            <div class="audio-player-section">
-                <div class="audio-player-container">
-                    <div class="audio-controls">
-                        <button id="play-pause-btn" class="control-btn">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div id="progress" class="progress"></div>
-                            </div>
-                            <div class="time-display">
-                                <span id="current-time">0:00</span>
-                                <span>/</span>
-                                <span id="duration">0:00</span>
-                            </div>
-                        </div>
-                        <div class="volume-container">
-                            <button id="mute-btn" class="control-btn">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                            <div class="volume-slider-container">
-                                <input type="range" id="volume-slider" min="0" max="100" value="100">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="track-info">
-                        <span id="track-title">Select a track</span>
-                    </div>
-                </div>
-                <select id="track-selector" class="track-selector">
-                    <option value="" disabled selected>Select a track</option>
-                    <option value="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0c6ff1bab.mp3">Lofi Study</option>
-                    <option value="https://cdn.pixabay.com/download/audio/2022/10/25/audio_200a51a6d6.mp3">Chill Acoustic</option>
-                    <option value="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8e9d46af4.mp3">Electronic Beat</option>
-                </select>
-                <audio id="audio-player" preload="metadata"></audio>
-            </div>
-            
             <div class="spotify-section" id="spotify-section">
                 <div class="spotify-header">
                     <i class="fab fa-spotify"></i>
@@ -103,6 +64,31 @@
                         <span>Discord</span>
                     </a>
                 </div>
+            </div>
+            
+            <div class="audio-player-section">
+                <div class="audio-player-container">
+                    <div class="track-info">
+                        <span id="track-title">hkmori - anybody can find love (except you)</span>
+                    </div>
+                    <div class="audio-controls">
+                        <button id="play-pause-btn" class="control-btn">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="progress" class="progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <select id="track-selector" class="track-selector">
+                    <option value="" disabled>Select a track</option>
+                    <option value="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0c6ff1bab.mp3" selected>hkmori - anybody can find love (except you)</option>
+                    <option value="https://cdn.pixabay.com/download/audio/2022/10/25/audio_200a51a6d6.mp3">Chill Acoustic</option>
+                    <option value="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8e9d46af4.mp3">Electronic Beat</option>
+                </select>
+                <audio id="audio-player" preload="metadata"></audio>
             </div>
         </div>
     </div>
