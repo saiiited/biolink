@@ -18,6 +18,17 @@ const artistNameElement = document.getElementById('artist-name');
 const activitySection = document.getElementById('activity-section');
 const activitiesContainer = document.getElementById('activities-container');
 
+// Audio Player Elements
+const audioPlayer = document.getElementById('audio-player');
+const playPauseBtn = document.getElementById('play-pause-btn');
+const muteBtn = document.getElementById('mute-btn');
+const volumeSlider = document.getElementById('volume-slider');
+const progressBar = document.getElementById('progress');
+const currentTimeElement = document.getElementById('current-time');
+const durationElement = document.getElementById('duration');
+const trackSelector = document.getElementById('track-selector');
+const trackTitleElement = document.getElementById('track-title');
+
 // Initialize WebSocket connection
 let socket;
 let heartbeatInterval;
@@ -37,6 +48,9 @@ function init() {
     
     // Then, establish WebSocket connection for real-time updates
     connectWebSocket();
+    
+    // Initialize audio player
+    initAudioPlayer();
 }
 
 // Fetch user data via REST API
@@ -213,6 +227,127 @@ function showError(message) {
     statusTextElement.textContent = message;
     spotifySection.style.display = 'none';
     activitySection.style.display = 'none';
+}
+
+// Initialize Audio Player
+function initAudioPlayer() {
+    // Set initial volume
+    audioPlayer.volume = volumeSlider.value / 100;
+    
+    // Play/Pause button event
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    
+    // Track selector event
+    trackSelector.addEventListener('change', changeTrack);
+    
+    // Mute button event
+    muteBtn.addEventListener('click', toggleMute);
+    
+    // Volume slider event
+    volumeSlider.addEventListener('input', changeVolume);
+    
+    // Progress bar events
+    audioPlayer.addEventListener('timeupdate', updateProgress);
+    audioPlayer.addEventListener('loadedmetadata', updateDuration);
+    
+    // Click on progress bar to seek
+    document.querySelector('.progress-bar').addEventListener('click', seek);
+    
+    // Track ended event
+    audioPlayer.addEventListener('ended', () => {
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        progressBar.style.width = '0%';
+        currentTimeElement.textContent = '0:00';
+    });
+}
+
+// Toggle play/pause
+function togglePlayPause() {
+    if (!audioPlayer.src) {
+        // If no track is selected, select the first one
+        if (trackSelector.options.length > 1) {
+            trackSelector.selectedIndex = 1;
+            changeTrack();
+        } else {
+            return;
+        }
+    }
+    
+    if (audioPlayer.paused) {
+        audioPlayer.play();
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    } else {
+        audioPlayer.pause();
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+}
+
+// Change track
+function changeTrack() {
+    const selectedTrack = trackSelector.value;
+    if (selectedTrack) {
+        audioPlayer.src = selectedTrack;
+        trackTitleElement.textContent = trackSelector.options[trackSelector.selectedIndex].text;
+        audioPlayer.load();
+        audioPlayer.play();
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    }
+}
+
+// Toggle mute
+function toggleMute() {
+    audioPlayer.muted = !audioPlayer.muted;
+    if (audioPlayer.muted) {
+        muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    } else {
+        muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    }
+}
+
+// Change volume
+function changeVolume() {
+    audioPlayer.volume = volumeSlider.value / 100;
+    if (audioPlayer.volume === 0) {
+        muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    } else {
+        muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    }
+}
+
+// Update progress bar
+function updateProgress() {
+    const duration = audioPlayer.duration;
+    const currentTime = audioPlayer.currentTime;
+    const progressPercent = (currentTime / duration) * 100;
+    
+    progressBar.style.width = `${progressPercent}%`;
+    
+    // Update current time display
+    currentTimeElement.textContent = formatTime(currentTime);
+}
+
+// Update duration display
+function updateDuration() {
+    durationElement.textContent = formatTime(audioPlayer.duration);
+}
+
+// Format time in MM:SS
+function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+}
+
+// Seek to position in audio
+function seek(e) {
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    
+    audioPlayer.currentTime = percent * audioPlayer.duration;
 }
 
 // Initialize when the page loads
