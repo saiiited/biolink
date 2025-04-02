@@ -20,226 +20,64 @@ const activitiesContainer = document.getElementById('activities-container');
 
 // Audio Player Elements
 const audioPlayer = document.getElementById('audio-player');
-const playPauseBtn = document.getElementById('play-pause-btn');
-const progressBar = document.getElementById('progress');
-const trackSelector = document.getElementById('track-selector');
-const trackTitleElement = document.getElementById('track-title');
+const playPauseBtn = document.querySelector('.play-pause');
+const prevBtn = document.querySelector('.prev');
+const nextBtn = document.querySelector('.next');
+const progressBar = document.querySelector('.progress');
+const currentTimeEl = document.querySelector('.current-time');
+const totalTimeEl = document.querySelector('.total-time');
 
-// Initialize WebSocket connection
-let socket;
-let heartbeatInterval;
+// Sample tracks
+const tracks = [
+    {
+        title: 'cobain - Lil Peep, Lil Tracy',
+        src: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0c6ff1bab.mp3',
+        img: 'https://placehold.co/80x80'
+    },
+    {
+        title: 'hkmori - anybody can find love (except you)',
+        src: 'https://cdn.pixabay.com/download/audio/2022/10/25/audio_200a51a6d6.mp3',
+        img: 'https://placehold.co/80x80'
+    },
+    {
+        title: 'Chill Vibes - Lofi Beat',
+        src: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8e9d46af4.mp3',
+        img: 'https://placehold.co/80x80'
+    }
+];
 
-// Status mapping
-const statusMap = {
-    online: 'Online',
-    idle: 'Idle',
-    dnd: 'Do Not Disturb',
-    offline: 'Offline'
-};
+let currentTrackIndex = 0;
 
 // Initialize the page
 function init() {
-    // First, try to get data via REST API
-    fetchUserData();
-    
-    // Then, establish WebSocket connection for real-time updates
-    connectWebSocket();
-    
     // Initialize audio player
     initAudioPlayer();
-}
-
-// Fetch user data via REST API
-async function fetchUserData() {
-    try {
-        const response = await fetch(`${LANYARD_API}/users/${DISCORD_ID}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            updateUI(data.data);
-        } else {
-            console.error('Failed to fetch user data:', data);
-            showError('Failed to load user data. Please try again later.');
-        }
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        showError('Failed to load user data. Please try again later.');
-    }
-}
-
-// Connect to Lanyard WebSocket
-function connectWebSocket() {
-    socket = new WebSocket(LANYARD_SOCKET);
     
-    socket.onopen = () => {
-        console.log('Connected to Lanyard WebSocket');
-        
-        // Subscribe to user updates
-        socket.send(
-            JSON.stringify({
-                op: 2,
-                d: {
-                    subscribe_to_ids: [DISCORD_ID]
-                }
-            })
-        );
-        
-        // Set up heartbeat interval
-        heartbeatInterval = setInterval(() => {
-            socket.send(JSON.stringify({ op: 3 }));
-        }, 30000);
-    };
-    
-    socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        switch (data.op) {
-            case 0:
-                // Initial connection established
-                break;
-            case 1:
-                // Heartbeat ACK
-                break;
-            case 0:
-                // Event
-                if (data.t === 'PRESENCE_UPDATE' && data.d.user_id === DISCORD_ID) {
-                    updateUI(data.d);
-                }
-                break;
-        }
-    };
-    
-    socket.onclose = () => {
-        console.log('Disconnected from Lanyard WebSocket');
-        clearInterval(heartbeatInterval);
-        
-        // Try to reconnect after a delay
-        setTimeout(connectWebSocket, 5000);
-    };
-    
-    socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        socket.close();
-    };
-}
-
-// Update UI with user data
-function updateUI(data) {
-    // Update avatar
-    if (data.discord_user && data.discord_user.avatar) {
-        const avatarHash = data.discord_user.avatar;
-        const avatarUrl = `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${avatarHash}.${avatarHash.startsWith('a_') ? 'gif' : 'png'}?size=256`;
-        avatarElement.src = avatarUrl;
-    }
-    
-    // Update username and tag
-    if (data.discord_user) {
-        usernameElement.textContent = data.discord_user.username;
-        discordTagElement.textContent = `#${data.discord_user.discriminator}`;
-    }
-    
-    // Update status
-    if (data.discord_status) {
-        // Remove all status classes
-        statusIndicatorElement.classList.remove('online', 'idle', 'dnd', 'offline');
-        // Add current status class
-        statusIndicatorElement.classList.add(data.discord_status);
-        
-        // Update status text
-        statusTextElement.textContent = statusMap[data.discord_status] || 'Unknown';
-        
-        // Add custom status if available
-        if (data.discord_status !== 'offline' && data.activities) {
-            const customStatus = data.activities.find(activity => activity.type === 4);
-            if (customStatus && customStatus.state) {
-                statusTextElement.textContent = customStatus.state;
-            }
-        }
-    }
-    
-    // Update Spotify section
-    if (data.spotify) {
-        spotifySection.style.display = 'block';
-        
-        // Update album art
-        if (data.spotify.album_art_url) {
-            albumArtElement.src = data.spotify.album_art_url;
-        }
-        
-        // Update song info
-        songTitleElement.textContent = data.spotify.song || 'Unknown Song';
-        artistNameElement.textContent = data.spotify.artist || 'Unknown Artist';
-    } else {
-        spotifySection.style.display = 'none';
-    }
-    
-    // Update activities
-    if (data.activities && data.activities.length > 0) {
-        activitySection.style.display = 'block';
-        
-        // Clear previous activities
-        activitiesContainer.innerHTML = '';
-        
-        // Filter out Spotify and Custom Status activities
-        const filteredActivities = data.activities.filter(
-            activity => activity.type !== 4 && activity.type !== 2
-        );
-        
-        if (filteredActivities.length > 0) {
-            // Add each activity
-            filteredActivities.forEach(activity => {
-                const activityItem = document.createElement('div');
-                activityItem.className = 'activity-item';
-                
-                // Activity icon
-                let iconUrl = 'https://placehold.co/50x50';
-                if (activity.application_id && activity.assets && activity.assets.large_image) {
-                    iconUrl = `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`;
-                }
-                
-                activityItem.innerHTML = `
-                    <img src="${iconUrl}" alt="${activity.name}" class="activity-icon">
-                    <div class="activity-details">
-                        <h3>${activity.name}</h3>
-                        <p>${activity.details || ''}</p>
-                        <p>${activity.state || ''}</p>
-                    </div>
-                `;
-                
-                activitiesContainer.appendChild(activityItem);
-            });
-        } else {
-            activitySection.style.display = 'none';
-        }
-    } else {
-        activitySection.style.display = 'none';
-    }
-}
-
-// Show error message
-function showError(message) {
-    usernameElement.textContent = 'Error';
-    discordTagElement.textContent = '';
-    statusTextElement.textContent = message;
-    spotifySection.style.display = 'none';
-    activitySection.style.display = 'none';
+    // Set up event listeners for server cards
+    setupServerCards();
 }
 
 // Initialize Audio Player
 function initAudioPlayer() {
-    // Set initial track
-    if (trackSelector.options.length > 1) {
-        audioPlayer.src = trackSelector.value;
-        audioPlayer.load();
-        // Auto-play the track
-        audioPlayer.play().catch(e => console.log('Auto-play prevented:', e));
-    }
+    // Load the first track
+    loadTrack(currentTrackIndex);
     
     // Play/Pause button event
     playPauseBtn.addEventListener('click', togglePlayPause);
     
-    // Track selector event
-    trackSelector.addEventListener('change', changeTrack);
+    // Previous track button
+    prevBtn.addEventListener('click', () => {
+        currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+        loadTrack(currentTrackIndex);
+        audioPlayer.play();
+    });
+    
+    // Next track button
+    nextBtn.addEventListener('click', () => {
+        currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+        loadTrack(currentTrackIndex);
+        audioPlayer.play();
+    });
     
     // Progress bar events
     audioPlayer.addEventListener('timeupdate', updateProgress);
@@ -249,23 +87,37 @@ function initAudioPlayer() {
     
     // Track ended event
     audioPlayer.addEventListener('ended', () => {
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        progressBar.style.width = '0%';
+        // Auto play next track
+        currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+        loadTrack(currentTrackIndex);
+        audioPlayer.play();
+    });
+}
+
+// Load track
+function loadTrack(index) {
+    const track = tracks[index];
+    audioPlayer.src = track.src;
+    document.querySelector('.track-title').textContent = track.title;
+    document.querySelector('.album-art').src = track.img;
+    
+    // Reset progress
+    progressBar.style.width = '0%';
+    
+    // Update play/pause button
+    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    
+    // Load audio
+    audioPlayer.load();
+    
+    // Update total time after metadata is loaded
+    audioPlayer.addEventListener('loadedmetadata', () => {
+        totalTimeEl.textContent = formatTime(audioPlayer.duration);
     });
 }
 
 // Toggle play/pause
 function togglePlayPause() {
-    if (!audioPlayer.src) {
-        // If no track is selected, select the first one
-        if (trackSelector.options.length > 1) {
-            trackSelector.selectedIndex = 1;
-            changeTrack();
-        } else {
-            return;
-        }
-    }
-    
     if (audioPlayer.paused) {
         audioPlayer.play();
         playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -275,25 +127,21 @@ function togglePlayPause() {
     }
 }
 
-// Change track
-function changeTrack() {
-    const selectedTrack = trackSelector.value;
-    if (selectedTrack) {
-        audioPlayer.src = selectedTrack;
-        trackTitleElement.textContent = trackSelector.options[trackSelector.selectedIndex].text;
-        audioPlayer.load();
-        audioPlayer.play();
-        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-    }
-}
-
-// Update progress bar
+// Update progress bar and time
 function updateProgress() {
     const duration = audioPlayer.duration;
     const currentTime = audioPlayer.currentTime;
     const progressPercent = (currentTime / duration) * 100;
     
     progressBar.style.width = `${progressPercent}%`;
+    currentTimeEl.textContent = formatTime(currentTime);
+}
+
+// Format time in MM:SS
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 }
 
 // Seek to position in audio
@@ -303,6 +151,18 @@ function seek(e) {
     const percent = (e.clientX - rect.left) / rect.width;
     
     audioPlayer.currentTime = percent * audioPlayer.duration;
+}
+
+// Set up server cards
+function setupServerCards() {
+    // Join button functionality
+    const joinButton = document.querySelector('.join-button');
+    if (joinButton) {
+        joinButton.addEventListener('click', () => {
+            alert('Joining server...');
+            // Here you would typically redirect to a Discord invite link
+        });
+    }
 }
 
 // Initialize when the page loads
