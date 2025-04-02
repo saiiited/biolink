@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suki's Biolink</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <img id="avatar" src="https://placehold.co/200x200" alt="Profile Avatar" class="avatar">
+                    <div id="status-indicator" class="status-indicator"></div>
+                </div>
+                <h1 id="username">Loading...</h1>
+                <p id="discord-tag">Loading...</p>
+                <p id="status-text" class="status-text">Loading status...</p>
+            </div>
+            
+            <div class="spotify-section" id="spotify-section">
+                <div class="spotify-header">
+                    <i class="fab fa-spotify"></i>
+                    <span>Currently Listening</span>
+                </div>
+                <div class="spotify-content">
+                    <img id="album-art" src="https://placehold.co/80x80" alt="Album Art">
+                    <div class="song-info">
+                        <p id="song-title">Loading...</p>
+                        <p id="artist-name">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-section" id="activity-section">
+                <h2>Current Activity</h2>
+                <div id="activities-container">
+                    <!-- Activities will be populated here -->
+                </div>
+            </div>
+            
+            <div class="links-section">
+                <h2>Links</h2>
+                <div class="links-container">
+                    <a href="#" class="link-item">
+                        <i class="fab fa-github"></i>
+                        <span>GitHub</span>
+                    </a>
+                    <a href="#" class="link-item">
+                        <i class="fab fa-twitter"></i>
+                        <span>Twitter</span>
+                    </a>
+                    <a href="#" class="link-item">
+                        <i class="fab fa-instagram"></i>
+                        <span>Instagram</span>
+                    </a>
+                    <a href="#" class="link-item">
+                        <i class="fab fa-discord"></i>
+                        <span>Discord</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
